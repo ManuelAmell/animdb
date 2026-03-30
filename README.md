@@ -2,6 +2,8 @@
 
 **AniMDB** es una aplicación de escritorio ligera, rápida y minimalista diseñada para ayudarte a organizar tu colección de anime y películas. Construida con **Electron** y con una estética **Premium Glassmorphism**, ofrece una experiencia de usuario fluida y moderna diseñada para mi disfrutenla.
 
+![AniMDB Logo](icon.png)
+
 
 ## 🚀 Características Principales
 
