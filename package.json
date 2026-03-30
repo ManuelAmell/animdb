@@ -1,0 +1,32 @@
+{
+  "name": "animdb",
+  "version": "1.0.0",
+  "description": "AniMDB Application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": [],
+  "author": "Manuel Amell",
+  "license": "ISC",
+  "homepage": "https://github.com/ManuelAmell/animdb",
+  "build": {
+    "appId": "com.manuelamell.animdb",
+    "productName": "AniMDB",
+    "icon": "build/icon.png",
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility",
+      "maintainer": "Manuel Amell <manuel@example.com>",
+      "icon": "build/icons"
+    }
+  },
+  "devDependencies": {
+    "electron": "^41.1.0",
+    "electron-builder": "^26.8.1"
+  }
+}
