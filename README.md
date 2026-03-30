@@ -16,6 +16,16 @@
 - **⏳ Sección de Pendientes**: Vista dedicada para lo que tienes por ver, con modo lista y cuadrícula.
 - **🗂️ Organización Avanzada**: Filtra por categorías, estados (Visto, Viendo, Pendiente) y estados de ánimo (Moods).
 
+## 📸 Capturas de Pantalla
+
+| Vista Principal | Ranking de Anime |
+| :---: | :---: |
+| ![Main Page](evidence/mainpage.png) | ![Ranking](evidence/ranking.png) |
+
+| Importación de Datos | Exportación y Backup |
+| :---: | :---: |
+| ![Import](evidence/importar.png) | ![Export](evidence/exportar.png) |
+
 ## 🛠️ Instalación y Uso
 - [Node.js](https://nodejs.org/) instalado en tu sistema.
 
