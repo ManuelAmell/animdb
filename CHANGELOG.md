@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-05-03
+
+### Added
+- **Desktop App**: Full Electron desktop application with native window controls
+- **Windows Installer**: NSIS installer with desktop and start menu shortcuts
+- **App Icon**: Custom icon visible in taskbar and window title
+- **Responsive Nav**: Improved navigation bar for smaller window sizes
+- **Production Build**: Optimized build with relative asset paths for Electron
+
+### Fixed
+- Asset loading issues in production (CSS/JS not loading)
+- Path resolution for production builds in Electron
+
+### Technical
+- Vite base path configuration for relative paths
+- Electron main process updated for proper production path resolution
+
 ## [1.0.0] - 2026-05-02
 
 ### Added

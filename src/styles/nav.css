@@ -92,11 +92,23 @@
   .nav-tab { padding: 8px 14px; font-size: 13px; }
 }
 
+@media (max-width: 1100px) {
+  .nav-tabs { display: none; }
+}
+
 @media (max-width: 900px) {
-  .nav { padding: 0 12px; }
+  .nav { padding: 0 12px; height: 64px; }
   .nav-logo-text { font-size: 22px; }
-  .nav-logo img { height: 48px; width: 48px; }
-  .nav-tabs { gap: 2px; padding: 2px; }
-  .nav-tab { padding: 6px 10px; font-size: 12px; }
+  .nav-logo img { height: 44px; width: 44px; }
+  .nav-tabs { display: none; }
   .nav-logo em { display: none; }
+  .nav-right { gap: 6px; }
+  .nav-right .btn-text { display: none; }
+}
+
+@media (max-width: 600px) {
+  .nav { padding: 0 8px; height: 56px; }
+  .nav-logo img { height: 36px; width: 36px; }
+  .nav-logo-text { font-size: 18px; }
+  .btn { padding: 8px; }
 }

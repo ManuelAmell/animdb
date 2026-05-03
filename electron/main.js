@@ -11,12 +11,16 @@ const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 let mainWindow = null;
 
 function createWindow() {
+  const iconPath = isDev
+    ? path.join(__dirname, '..', 'build', 'icon.png')
+    : path.join(process.resourcesPath, 'icon.png');
+
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 900,
     minHeight: 600,
-    icon: path.join(__dirname, 'build', 'icon.png'),
+    icon: iconPath,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -34,7 +38,10 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
+    const distPath = app.isPackaged
+      ? path.join(app.getAppPath(), 'dist', 'index.html')
+      : path.join(__dirname, '..', 'dist', 'index.html');
+    mainWindow.loadFile(distPath);
   }
 
   mainWindow.on('closed', () => {

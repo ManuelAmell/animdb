@@ -52,6 +52,9 @@
 | `npm start` | Inicia la aplicación Electron |
 | `npm run electron:dev` | Ejecuta Vite + Electron en modo desarrollo |
 | `npm run electron:build` | Build de producción + paquete Electron |
+| `npm run build:win` | Construir instalador para Windows |
+| `npm run build:mac` | Construir instalador para macOS |
+| `npm run build:linux` | Construir instalador para Linux |
 
 ### Desarrollo
 ```bash
@@ -71,7 +74,11 @@ npm run build
 npm run electron:build
 ```
 
-El archivo resultante se encontrará en la carpeta `dist-electron/`.
+### Descargas Pre-compiladas
+Los instaladores pre-compilados se encuentran en la carpeta `dist-electron/`:
+- **Windows**: `AniMDB Setup 1.0.0.exe` (NSIS installer)
+- **macOS**: `AniMDB-1.0.0.dmg` (requiere build en Mac)
+- **Linux**: `AniMDB-1.0.0.AppImage` (requiere build en Linux)
 
 ## 📜 Licencia
 
