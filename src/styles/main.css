@@ -1,0 +1,21 @@
+@import './variables.css';
+@import './background.css';
+@import './nav.css';
+@import './buttons.css';
+@import './search.css';
+@import './hero.css';
+@import './sections.css';
+@import './cards.css';
+@import './modal.css';
+@import './imdb-picker.css';
+@import './api-search.css';
+@import './switch.css';
+@import './ranking.css';
+@import './temas.css';
+@import './detail.css';
+@import './utilities.css';
+@import './layout.css';
+
+html {
+  background: #000;
+}

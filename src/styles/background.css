@@ -1,0 +1,61 @@
+.bg-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-orbs::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(94, 92, 230, 0.15) 0%, transparent 50%),
+              radial-gradient(ellipse at 80% 50%, rgba(191, 90, 242, 0.1) 0%, transparent 40%),
+              radial-gradient(ellipse at 20% 80%, rgba(10, 132, 255, 0.12) 0%, transparent 40%);
+}
+
+.bg-orbs span {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.25;
+  animation: orbFloat 25s infinite ease-in-out;
+}
+
+.bg-orbs span:nth-child(1) {
+  width: 600px;
+  height: 600px;
+  background: var(--accent);
+  top: -150px;
+  left: -100px;
+}
+
+.bg-orbs span:nth-child(2) {
+  width: 500px;
+  height: 500px;
+  background: var(--accent2);
+  bottom: 20%;
+  right: -100px;
+}
+
+.bg-orbs span:nth-child(3) {
+  width: 400px;
+  height: 400px;
+  background: var(--accent3);
+  top: 40%;
+  left: 30%;
+}
+
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse at 50% 50%, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 20%, transparent 70%);
+}
