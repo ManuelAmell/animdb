@@ -69,6 +69,72 @@ export async function fetchJikanResults(query: string): Promise<SearchResult[]> 
   }
 }
 
+export async function fetchByIMDBId(imdbId: string): Promise<SearchResult | null> {
+  try {
+    const res = await fetch(`https://www.omdbapi.com/?i=${imdbId}&apikey=trilogy`);
+    const data = await res.json();
+    if (data.Response === 'False' || !data.Poster || data.Poster === 'N/A') return null;
+    
+    return {
+      title: data.Title,
+      img: data.Poster,
+      year: data.Year?.split('-')[0] || data.Year || '',
+      type: data.Type === 'movie' ? 'movie' : 'series',
+      genres: data.Genre || '',
+      source: 'OMDb'
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchByAnimeListId(animeListId: string): Promise<SearchResult | null> {
+  const idNum = parseInt(animeListId);
+  if (isNaN(idNum)) return null;
+  
+  const kitsuResult = await fetchByKitsuId(animeListId);
+  if (kitsuResult) return kitsuResult;
+  
+  try {
+    const res = await fetch(`https://api.jikan.moe/v4/anime/${animeListId}`);
+    const data = await res.json();
+    if (!data.data) return null;
+    
+    const anime = data.data;
+    return {
+      title: anime.title,
+      img: anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url || '',
+      year: anime.year?.toString() || anime.aired?.prop?.from?.year?.toString() || '',
+      type: anime.type === 'Movie' ? 'movie' : 'series',
+      genres: anime.genres?.map((g: { name: string }) => g.name).join(', ') || '',
+      source: 'MAL'
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchByKitsuId(kitsuId: string): Promise<SearchResult | null> {
+  try {
+    const res = await fetch(`https://kitsu.io/api/edge/anime/${kitsuId}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.data) return null;
+    
+    const anime = data.data.attributes;
+    return {
+      title: anime.titles.en || anime.canonicalTitle || anime.titles.ja_jp || '',
+      img: anime.posterImage?.large || anime.posterImage?.original || anime.posterImage?.small || '',
+      year: anime.startDate?.split('-')[0] || '',
+      type: anime.subtype === 'movie' ? 'movie' : 'series',
+      genres: '',
+      source: 'Kitsu'
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function fetchITunesResults(query: string, country = 'US'): Promise<SearchResult[]> {
   try {
     const res = await fetch(

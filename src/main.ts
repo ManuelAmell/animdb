@@ -1,8 +1,9 @@
 import { store } from './store';
 import type { MediaItem, ViewType, FilterType, PendingDisplayStyle } from './types';
 import { THEMES, getRatingColor, getRatingLabel, STATUS_LABELS } from './types';
-import { smartSearch } from './api';
+import { smartSearch, fetchByIMDBId, fetchByAnimeListId } from './api';
 import './styles/main.css';
+import './styles/moods.css';
 
 class App {
   private currentView: ViewType = 'list';
@@ -16,6 +17,7 @@ class App {
   private editingId: number | null = null;
   private detailItemId: number | null = null;
   private unsubscribe: (() => void) | null = null;
+  private draggedItemId: number | null = null;
 
   constructor() {
     this.init();
@@ -355,6 +357,66 @@ class App {
     if (removeCoverBtn) removeCoverBtn.style.display = img ? 'flex' : 'none';
   }
 
+  async fetchByIMDB(): Promise<void> {
+    const imdbId = (document.getElementById('imdbIdInput') as HTMLInputElement).value.trim();
+    if (!imdbId) {
+      this.showToast('Introduce una IMDB ID', '⚠');
+      return;
+    }
+    const resultsEl = document.getElementById('apiResults');
+    if (resultsEl) {
+      resultsEl.innerHTML = '<div class="api-loading">Buscando...</div>';
+      resultsEl.classList.add('active');
+    }
+    const result = await fetchByIMDBId(imdbId);
+    if (result && result.img) {
+      (document.getElementById('fCoverUrl') as HTMLInputElement).value = result.img;
+      if (this.editingId === null) {
+        if (result.year) (document.getElementById('fYear') as HTMLInputElement).value = result.year;
+        (document.getElementById('fType') as HTMLSelectElement).value = result.type;
+        (document.getElementById('fIsAnime') as HTMLInputElement).checked = false;
+      }
+      const removeCoverBtn = document.getElementById('removeCoverBtn');
+      if (removeCoverBtn) removeCoverBtn.style.display = 'flex';
+      this.showToast('Carátula encontrada');
+      (document.getElementById('imdbIdInput') as HTMLInputElement).value = '';
+    } else {
+      this.showToast('No se encontró', '❌');
+    }
+    if (resultsEl) resultsEl.classList.remove('active');
+  }
+
+async fetchByAnimeList(): Promise<void> {
+    const animeListId = (document.getElementById('animeListIdInput') as HTMLInputElement).value.trim();
+    if (!animeListId) {
+      this.showToast('Introduce una ID', '⚠');
+      return;
+    }
+    const resultsEl = document.getElementById('apiResults');
+    if (resultsEl) {
+      resultsEl.innerHTML = '<div class="api-loading">Buscando...</div>';
+      resultsEl.classList.add('active');
+    }
+    const result = await fetchByAnimeListId(animeListId);
+    if (result && result.img) {
+      (document.getElementById('fCoverUrl') as HTMLInputElement).value = result.img;
+      if (this.editingId === null) {
+        (document.getElementById('fTitle') as HTMLInputElement).value = result.title;
+        if (result.year) (document.getElementById('fYear') as HTMLInputElement).value = result.year;
+        (document.getElementById('fType') as HTMLSelectElement).value = result.type;
+        if (result.genres) (document.getElementById('fGenre') as HTMLInputElement).value = result.genres;
+        (document.getElementById('fIsAnime') as HTMLInputElement).checked = true;
+      }
+      const removeCoverBtn = document.getElementById('removeCoverBtn');
+      if (removeCoverBtn) removeCoverBtn.style.display = 'flex';
+      this.showToast('Carátula encontrada');
+      (document.getElementById('animeListIdInput') as HTMLInputElement).value = '';
+    } else {
+      this.showToast('No se encontró', '❌');
+    }
+    if (resultsEl) resultsEl.classList.remove('active');
+  }
+
   setModalRating(val: number): void {
     this.modalRating = val;
     document.querySelectorAll('#imdbPicker .imdb-btn').forEach(btn => {
@@ -654,7 +716,7 @@ quickSearchCover(id: number, title: string): void {
       const color = getRatingColor(item.rating);
 
       return `
-        <div class="rank-item" data-pos="${pos}" onclick="app.openDetail(${item.id})">
+        <div class="rank-item" data-id="${item.id}" data-pos="${pos}" draggable="true" ondragstart="app.handleDragStart(event, ${item.id})" ondragover="app.handleDragOver(event)" ondrop="app.handleDrop(event, ${item.id})" onclick="app.openDetail(${item.id})">
           <div class="rank-pos ${posClass}">${pos <= 3 ? ['🥇', '🥈', '🥉'][pos - 1] : '#' + pos}</div>
           <div class="rank-emoji">
             ${item.coverUrl 
@@ -684,9 +746,68 @@ quickSearchCover(id: number, title: string): void {
         </div>
       `;
     }).join('');
+
+    this.initDragAndDrop();
   }
 
-  // Pendientes methods
+  private initDragAndDrop(): void {
+    const rankEl = document.getElementById('rankList');
+    if (!rankEl) return;
+
+    rankEl.querySelectorAll('.rank-item').forEach(item => {
+      item.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        (item as HTMLElement).classList.add('drag-over');
+      });
+
+      item.addEventListener('dragleave', () => {
+        (item as HTMLElement).classList.remove('drag-over');
+      });
+
+      item.addEventListener('drop', (e) => {
+        e.preventDefault();
+        (item as HTMLElement).classList.remove('drag-over');
+      });
+    });
+  }
+
+  handleDragStart(e: DragEvent, itemId: number): void {
+    this.draggedItemId = itemId;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', itemId.toString());
+    }
+    const target = e.target as HTMLElement;
+    target.classList.add('dragging');
+  }
+
+  handleDragOver(e: DragEvent): void {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  handleDrop(e: DragEvent, targetId: number): void {
+    e.preventDefault();
+    if (this.draggedItemId === null || this.draggedItemId === targetId) return;
+
+    const allItems = store.getAll();
+    const draggedItem = allItems.find(i => i.id === this.draggedItemId);
+    const targetItem = allItems.find(i => i.id === targetId);
+
+    if (!draggedItem || !targetItem) return;
+
+    const draggedPriority = draggedItem.priority || 0;
+    const targetPriority = targetItem.priority || 0;
+
+    store.update(this.draggedItemId, { priority: targetPriority });
+    store.update(targetId, { priority: draggedPriority });
+
+    this.draggedItemId = null;
+    this.renderRanking();
+    this.showToast('Orden actualizado');
+  }
   setPendingStyle(style: PendingDisplayStyle): void {
     this.pendingStyle = style;
     this.renderPendientes();
@@ -694,7 +815,12 @@ quickSearchCover(id: number, title: string): void {
 
   renderPendientes(): void {
     const query = (document.getElementById('searchInput') as HTMLInputElement).value.toLowerCase();
-    const list = store.getPending().filter(i => this.matches(i, query));
+    
+    const movies = store.getPendingMovies().filter(i => this.matches(i, query));
+    const series = store.getPendingSeries().filter(i => this.matches(i, query));
+    const animeSeries = store.getPendingAnimeSeries().filter(i => this.matches(i, query));
+
+    const list = [...movies, ...series, ...animeSeries];
 
     const gridBtn = document.getElementById('pendingGridBtn');
     const listBtn = document.getElementById('pendingListBtn');
@@ -707,19 +833,21 @@ quickSearchCover(id: number, title: string): void {
       document.getElementById('pendingGridArea')!.style.display = 'block';
       document.getElementById('pendingListArea')!.style.display = 'none';
 
-      const movies = list.filter(i => i.type === 'movie');
-      const series = list.filter(i => i.type === 'series');
-
       const moviesSection = document.getElementById('pendingMoviesSection');
       const seriesSection = document.getElementById('pendingSeriesSection');
+      const animeSection = document.getElementById('pendingAnimeSeriesSection');
+      
       if (moviesSection) moviesSection.style.display = movies.length ? 'block' : 'none';
       if (seriesSection) seriesSection.style.display = series.length ? 'block' : 'none';
+      if (animeSection) animeSection.style.display = animeSeries.length ? 'block' : 'none';
 
       document.getElementById('pendingMovieCount')!.textContent = movies.length.toString();
       document.getElementById('pendingSeriesCount')!.textContent = series.length.toString();
+      document.getElementById('pendingAnimeSeriesCount')!.textContent = animeSeries.length.toString();
 
       this.renderGrid('pendingMoviesGrid', movies);
       this.renderGrid('pendingSeriesGrid', series);
+      this.renderGrid('pendingAnimeSeriesGrid', animeSeries);
     } else {
       document.getElementById('pendingGridArea')!.style.display = 'none';
       document.getElementById('pendingListArea')!.style.display = 'block';
@@ -731,21 +859,24 @@ quickSearchCover(id: number, title: string): void {
           return;
         }
 
-        listEl.innerHTML = list.map((item, idx) => `
-          <div class="rank-item" onclick="app.openDetail(${item.id})">
-            <div class="rank-pos pn">${idx + 1}</div>
-            <div class="rank-emoji">
-              ${item.coverUrl 
-                ? `<img src="${item.coverUrl}" alt="${item.title}">` 
-                : '<svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/></svg>'}
+        listEl.innerHTML = list.map((item, idx) => {
+          const typeLabel = item.type === 'movie' ? 'Película' : (item.isAnime ? 'Anime' : 'Serie');
+          return `
+            <div class="rank-item" onclick="app.openDetail(${item.id})">
+              <div class="rank-pos pn">${idx + 1}</div>
+              <div class="rank-emoji">
+                ${item.coverUrl 
+                  ? `<img src="${item.coverUrl}" alt="${item.title}">` 
+                  : '<svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/></svg>'}
+              </div>
+              <div class="rank-info">
+                <div class="rank-title">${item.title}</div>
+                <div class="rank-meta">${item.year || '—'} · ${typeLabel}</div>
+              </div>
+              <div class="rank-unrated-label">PENDIENTE</div>
             </div>
-            <div class="rank-info">
-              <div class="rank-title">${item.title}</div>
-              <div class="rank-meta">${item.year || '—'}</div>
-            </div>
-            <div class="rank-unrated-label">PENDIENTE</div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       }
     }
   }

@@ -65,7 +65,19 @@ class Store {
   }
 
   getPending(): MediaItem[] {
-    return this.items.filter(i => i.status === 'pending' || i.rating === 0);
+    return this.items.filter(i => i.status === 'pending');
+  }
+
+  getPendingMovies(): MediaItem[] {
+    return this.items.filter(i => i.status === 'pending' && i.type === 'movie');
+  }
+
+  getPendingSeries(): MediaItem[] {
+    return this.items.filter(i => i.status === 'pending' && i.type === 'series' && !i.isAnime);
+  }
+
+  getPendingAnimeSeries(): MediaItem[] {
+    return this.items.filter(i => i.status === 'pending' && i.type === 'series' && i.isAnime);
   }
 
   getRated(): MediaItem[] {

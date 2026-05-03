@@ -211,6 +211,12 @@
             </div>
             <div class="grid" id="pendingSeriesGrid" role="list"></div>
           </section>
+          <section class="section" id="pendingAnimeSeriesSection">
+            <div class="section-header">
+              <div class="section-title">Series Anime <span class="badge" id="pendingAnimeSeriesCount">0</span></div>
+            </div>
+            <div class="grid" id="pendingAnimeSeriesGrid" role="list"></div>
+          </section>
         </div>
         <div id="pendingListArea" style="display:none">
           <div class="rank-list" id="pendingList" role="list"></div>
@@ -236,7 +242,7 @@
           <button class="modal-close" onclick="app.closeModal('addModal')" aria-label="Cerrar">✕</button>
         </div>
         <div class="field-row">
-          <div class="field">
+          <div class="field" style="flex: 1;">
             <label for="fTitle">Título</label>
             <div class="api-search-row">
               <input type="text" id="fTitle" placeholder="Nombre…" autocomplete="off" style="flex: 1;">
@@ -247,6 +253,17 @@
                 </svg>
               </button>
               <div class="api-results" id="apiResults"></div>
+            </div>
+          </div>
+        </div>
+        <div class="manual-id-container">
+          <div class="manual-id-group">
+            <label>Buscar por ID</label>
+            <div class="manual-id-row">
+              <input type="text" id="imdbIdInput" placeholder="IMDB ID (ej: tt1234567)" class="manual-id-input">
+              <button class="manual-id-btn" onclick="app.fetchByIMDB()">TMDB</button>
+              <input type="text" id="animeListIdInput" placeholder="Kitsu/MAL ID (ej: 1)" class="manual-id-input">
+              <button class="manual-id-btn" onclick="app.fetchByAnimeList()">AL</button>
             </div>
           </div>
         </div>

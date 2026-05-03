@@ -105,3 +105,67 @@
   font-size: 12px;
   color: var(--text-muted);
 }
+
+.manual-id-container {
+  margin-bottom: 8px;
+}
+
+.manual-id-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.manual-id-group label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.manual-id-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.manual-id-input {
+  flex: 1;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.manual-id-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.manual-id-input::placeholder {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.manual-id-btn {
+  padding: 0 16px;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.manual-id-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
