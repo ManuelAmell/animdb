@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0] - 2026-05-10
+
+### Added
+- **Backend Server**: Express + SQLite (sql.js) servidor propio
+- **WebSocket Sync**: Sincronización en tiempo real via Socket.io
+- **Remote Access**: Acceso via Tailscale desde cualquier dispositivo
+- **NPM Scripts**: `npm run start` y `npm run stop` para gestionar servicios
+
+### Changed
+- **Data Storage**: De localStorage a SQLite (server/animdb.db)
+- **API**: Nuevo backend REST en puerto 5174
+
+### Fixed
+- Problemas de CORS y acceso remoto
+- Import de socket.io-client
+
 ## [1.1.0] - 2026-05-03
 
 ### Added

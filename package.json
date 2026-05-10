@@ -7,10 +7,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && node index.js",
+    "dev:client": "vite",
+    "stop": "pkill -f \"node index.js\" && pkill -f \"vite\"",
     "dev:all": "concurrently \"npm run dev\" \"cd server && npm run dev\"",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "start": "electron .",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "vite build && electron-builder",
     "build:win": "npm run build && electron-builder --win --prepackaged dist-electron/win-unpacked",
@@ -26,7 +29,8 @@
     "wait-on": "^7.2.0"
   },
   "dependencies": {
-    "lucide-static": "^0.303.0"
+    "lucide-static": "^0.303.0",
+    "socket.io-client": "^4.8.3"
   },
   "build": {
     "appId": "com.animdb.app",
@@ -48,7 +52,9 @@
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "build/icon.png"

@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 
 const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 const WS_URL = isLocalhost ? 'http://localhost:5174' : 'http://100.101.28.97:5174';
+const API_URL = isLocalhost ? '/api' : 'http://100.101.28.97:5174/api';
 
 class Store {
   private items: MediaItem[] = [];
@@ -33,7 +34,7 @@ class Store {
 
   private async load(): Promise<void> {
     try {
-      const res = await fetch('/api/items');
+      const res = await fetch(`${API_URL}/items`);
       if (res.ok) {
         const data = await res.json();
         this.items = data || [];

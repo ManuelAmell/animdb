@@ -49,13 +49,21 @@ app.use(express.json());
 app.get('/api/items', (_, res) => res.json(getItems()));
 
 app.post('/api/items', (req, res) => {
-  const { title, type, year, genre, status, rating, notes, moods, isAnime, coverUrl, priority } = req.body;
-  db.run('INSERT INTO items (title, type, year, genre, status, rating, notes, moods, isAnime, coverUrl, priority) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [title, type, year || null, genre || null, status || 'pending', rating || 0, notes || null, JSON.stringify(moods || []), isAnime ? 1 : 0, coverUrl || null, priority || 0]);
-  const id = db.exec('SELECT last_insert_rowid()')[0].values[0][0];
-  saveDB();
-  io.emit('items:updated', getItems());
-  res.json({ id, ...req.body });
+  console.log('POST /api/items:', req.body);
+  try {
+    const { title, type, year, genre, status, rating, notes, moods, isAnime, coverUrl, priority } = req.body;
+    db.run('INSERT INTO items (title, type, year, genre, status, rating, notes, moods, isAnime, coverUrl, priority) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [title, type, year || null, genre || null, status || 'pending', rating || 0, notes || null, JSON.stringify(moods || []), isAnime ? 1 : 0, coverUrl || null, priority || 0]);
+    const id = db.exec('SELECT last_insert_rowid()')[0].values[0][0];
+    saveDB();
+    const items = getItems();
+    io.emit('items:updated', items);
+    console.log('Item added, total items:', items.length);
+    res.json({ id, ...req.body });
+  } catch (err) {
+    console.error('Error adding item:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.put('/api/items/:id', (req, res) => {

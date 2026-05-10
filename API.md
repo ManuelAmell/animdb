@@ -1,66 +1,102 @@
 # API Reference
 
-This document describes the external APIs used in AniMDB for fetching metadata and covers.
+Este documento describe las APIs externas usadas en AniMDB para buscar metadatos, y la API del backend local.
 
-## Search by Name
+## API del Backend (Local)
+
+El servidor Express corre en el puerto `5174` y provee:
+
+### Endpoints REST
+
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/items` | Obtiene todos los items |
+| POST | `/api/items` | Crea un nuevo item |
+| PUT | `/api/items/:id` | Actualiza un item |
+| DELETE | `/api/items/:id` | Elimina un item |
+
+### WebSocket
+
+El servidor usa Socket.io para sincronización en tiempo real.
+
+- **Evento**: `items:updated` - Se emite cuando hay cambios en los items
+- **Puerto**: `5174`
+
+### Estructura de Item
+
+```typescript
+interface MediaItem {
+  id: number;
+  title: string;
+  type: 'movie' | 'series';
+  year?: string;
+  genre?: string;
+  status: 'pending' | 'watched' | 'watching';
+  rating: number;
+  notes?: string;
+  moods: string[];
+  isAnime: boolean;
+  coverUrl?: string;
+  priority: number;
+}
+```
+
+---
+
+## APIs Externas (Búsqueda de Metadatos)
 
 ### smartSearch(query, isAnime, year)
-Performs an intelligent multi-source search prioritizing results based on:
-- Exact title matches
-- Year matching
-- Source preference (Jikan for anime, TMDB for general)
 
-**Parameters:**
-- `query` (string): Search term
-- `isAnime` (boolean): Whether to prioritize anime sources
-- `year` (string, optional): Release year to prioritize
+Búsqueda inteligente multi-fuente priorizando resultados por:
+- Coincidencia exacta de título
+- Año de lanzamiento
+- Fuente preferida (Jikan para anime, TMDB para general)
 
-**Returns:** `Promise<SearchResult[]>`
+**Parámetros:**
+- `query` (string): Término de búsqueda
+- `isAnime` (boolean): Si priorizar fuentes de anime
+- `year` (string, opcional): Año de lanzamiento
 
-## Search by ID
+**Retorna:** `Promise<SearchResult[]>`
+
+---
 
 ### fetchByIMDBId(imdbId)
-Fetches movie/series data by IMDB ID using OMDb API.
 
-**Parameters:**
-- `imdbId` (string): IMDB ID (e.g., "tt0468569")
+Obtiene datos de película/serie por ID de IMDB usando OMDb API.
 
-**Example:**
-```
-tt0468569 - The Dark Knight
-tt4154796 - Avengers: Infinity War
-```
+**Parámetros:**
+- `imdbId` (string): ID de IMDB (ej: "tt0468569")
 
-**Returns:** `Promise<SearchResult | null>`
+**Retorna:** `Promise<SearchResult | null>`
 
 ---
 
 ### fetchByKitsuId(kitsuId)
-Fetches anime data by Kitsu ID.
 
-**Parameters:**
-- `kitsuId` (string): Kitsu anime ID
+Obtiene datos de anime por ID de Kitsu.
 
-**Example:**
-```
-1 - Cowboy Bebop (Kitsu)
-```
+**Parámetros:**
+- `kitsuId` (string): ID de Kitsu (ej: "1")
 
-**Returns:** `Promise<SearchResult | null>`
+**Retorna:** `Promise<SearchResult | null>`
 
 ---
 
 ### fetchByAnimeListId(animeListId)
-Fetches anime data by MyAnimeList ID (via Jikan API) or Kitsu ID.
 
-**Parameters:**
-- `animeListId` (string): MAL ID or Kitsu ID
+Obtiene datos de anime por ID de MyAnimeList (via Jikan) o Kitsu.
 
-**Returns:** `Promise<SearchResult | null>`
+**Parámetros:**
+- `animeListId` (string): ID de MAL o Kitsu
 
-**Note:** Tries Kitsu first, then falls back to MyAnimeList (Jikan).
+**Retorna:** `Promise<SearchResult | null>`
 
-## Data Structures
+**Nota:** Intenta Kitsu primero, luego recurre a MyAnimeList (Jikan).
+
+---
+
+## Estructuras de Datos
 
 ### SearchResult
 ```typescript
@@ -75,23 +111,20 @@ interface SearchResult {
 }
 ```
 
-## External APIs Used
+---
 
-| API | Purpose | Rate Limit |
-|-----|---------|------------|
-| OMDb API | IMDB lookups | 1000/day (free key) |
-| Kitsu API | Anime by ID | No auth required |
-| Jikan API | MyAnimeList by ID | 3 req/sec |
-| TMDB | General search | Requires API key |
-| TVMaze | TV show search | No auth required |
+## APIs Externas Usadas
 
-## Local Storage
+| API | Propósito | Límite |
+|-----|-----------|--------|
+| OMDb API | Búsquedas IMDB | 1000/día (key gratuita) |
+| Kitsu API | Anime por ID | Sin auth |
+| Jikan API | MyAnimeList por ID | 3 req/seg |
+| TMDB | Búsqueda general | Requiere API key |
+| TVMaze | Búsqueda de series | Sin auth |
 
-Data is persisted in localStorage under key `myanimedb_v4` with the following structure:
+---
 
-```json
-{
-  "items": [...],
-  "nextId": 100
-}
-```
+## Persistencia de Datos
+
+Los datos se almacenan en `server/animdb.db` (SQLite). No se usa localStorage.
