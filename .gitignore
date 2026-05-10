@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist-electron/
 *.log
 .DS_Store
 *.AppImage
@@ -9,3 +10,5 @@ dist/
 .gemini/
 brain/
 *.tmp
+server/*.db
+server/*.db-*

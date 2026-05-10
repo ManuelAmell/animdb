@@ -466,7 +466,7 @@ async fetchByAnimeList(): Promise<void> {
     }
 
     if (this.editingId !== null && !existingByTitle) {
-      store.update(this.editingId, {
+      await store.update(this.editingId, {
         title,
         coverUrl,
         type: (document.getElementById('fType') as HTMLSelectElement).value as 'movie' | 'series',
@@ -480,7 +480,7 @@ async fetchByAnimeList(): Promise<void> {
       });
       this.showToast('Cambios guardados');
     } else if (this.editingId !== null && existingByTitle) {
-      store.update(this.editingId, {
+      await store.update(this.editingId, {
         title,
         coverUrl,
         type: (document.getElementById('fType') as HTMLSelectElement).value as 'movie' | 'series',
@@ -494,7 +494,7 @@ async fetchByAnimeList(): Promise<void> {
       });
       this.showToast('Cambios guardados');
     } else {
-      store.add({
+      await store.add({
         title,
         coverUrl,
         type: (document.getElementById('fType') as HTMLSelectElement).value as 'movie' | 'series',
@@ -514,13 +514,13 @@ async fetchByAnimeList(): Promise<void> {
     this.render();
   }
 
-  deleteCurrentItem(): void {
+  async deleteCurrentItem(): Promise<void> {
     if (this.editingId === null) return;
     const item = store.getById(this.editingId);
     if (!item) return;
     if (!confirm(`¿Eliminar "${item.title}"?`)) return;
 
-    store.delete(this.editingId);
+    await store.delete(this.editingId);
     this.editingId = null;
     this.closeModal('addModal');
     this.showToast('Eliminado');
@@ -610,9 +610,9 @@ quickSearchCover(id: number, title: string): void {
     this.openModal('detailModal');
   }
 
-  setDetailRating(val: number): void {
+  async setDetailRating(val: number): Promise<void> {
     if (this.detailItemId === null) return;
-    store.setRating(this.detailItemId, val);
+    await store.setRating(this.detailItemId, val);
     this.openDetail(this.detailItemId);
   }
 
@@ -788,7 +788,7 @@ quickSearchCover(id: number, title: string): void {
     }
   }
 
-  handleDrop(e: DragEvent, targetId: number): void {
+  async handleDrop(e: DragEvent, targetId: number): Promise<void> {
     e.preventDefault();
     if (this.draggedItemId === null || this.draggedItemId === targetId) return;
 
@@ -801,8 +801,8 @@ quickSearchCover(id: number, title: string): void {
     const draggedPriority = draggedItem.priority || 0;
     const targetPriority = targetItem.priority || 0;
 
-    store.update(this.draggedItemId, { priority: targetPriority });
-    store.update(targetId, { priority: draggedPriority });
+    await store.update(this.draggedItemId, { priority: targetPriority });
+    await store.update(targetId, { priority: draggedPriority });
 
     this.draggedItemId = null;
     this.renderRanking();
@@ -924,33 +924,34 @@ quickSearchCover(id: number, title: string): void {
     this.openModal('exportModal');
   }
 
-  importData(event: Event): void {
+  async importData(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target?.result as string;
-      if (file.name.endsWith('.json')) {
-        const success = store.importJSON(content);
-        if (success) {
-          this.showToast('Importado correctamente');
-          this.render();
-        } else {
-          this.showToast('Error al importar', 'error');
-        }
+    const content = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.readAsText(file);
+    });
+
+    if (file.name.endsWith('.json')) {
+      const success = await store.importJSON(content);
+      if (success) {
+        this.showToast('Importado correctamente');
+        this.render();
       } else {
-        const count = store.importTxt(content);
-        if (count > 0) {
-          this.showToast(`${count} elementos importados`);
-          this.render();
-        } else {
-          this.showToast('No se pudieron importar elementos', 'error');
-        }
+        this.showToast('Error al importar', 'error');
       }
-    };
-    reader.readAsText(file);
+    } else {
+      const count = store.importTxt(content);
+      if (count > 0) {
+        this.showToast(`${count} elementos importados`);
+        this.render();
+      } else {
+        this.showToast('No se pudieron importar elementos', 'error');
+      }
+    }
     input.value = '';
   }
 
