@@ -1,0 +1,46 @@
+/* View switching */
+.view {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.view.hidden {
+  display: none;
+}
+
+.view.active {
+  display: block;
+}
+
+/* Main content area */
+main {
+  padding: 120px 32px 40px;
+  max-width: 1440px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  main {
+    padding: 70px 18px 40px;
+  }
+
+  .modal {
+    padding: 24px;
+  }
+}

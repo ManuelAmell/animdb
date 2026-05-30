@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-electron/
+.env
+*.log
+.DS_Store
+*.AppImage
+*.deb
+*.rpm
+*.zip
+.gemini/
+brain/
+.cursor/
+*.tmp
+server/*.db
+server/*.db-*

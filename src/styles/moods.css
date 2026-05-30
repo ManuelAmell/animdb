@@ -1,0 +1,31 @@
+.mood-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mood-chip {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  backdrop-filter: var(--glass-light);
+  font-size: 13px;
+  font-weight: 500;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.mood-chip:hover {
+  background: var(--surface-hover);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.mood-chip.selected {
+  background: color-mix(in srgb, var(--mc) 20%, transparent);
+  border-color: var(--mc);
+  color: var(--mc);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--mc) 30%, transparent);
+}

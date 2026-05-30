@@ -1,0 +1,224 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(30px) saturate(150%);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+
+.modal-backdrop.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 520px;
+  padding: 28px;
+  margin: auto 0;
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  transform: scale(0.96) translateY(10px);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s;
+  opacity: 0;
+}
+
+.modal-backdrop.open .modal {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-close {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 14px;
+  transition: var(--transition);
+  padding: 0;
+}
+
+.modal-close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.modal-actions .btn {
+  flex: 1;
+  justify-content: center;
+  padding: 12px 16px;
+  font-size: 15px;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 7px;
+  letter-spacing: 0.2px;
+  text-transform: none;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 15px;
+  outline: none;
+  transition: var(--transition);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--accent);
+  background: rgba(10, 132, 255, 0.08);
+}
+
+.field select option {
+  background: var(--bg2);
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.io-format-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.io-format-card {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.io-format-card h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.io-format-card p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.io-format-card code {
+  display: block;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--text-primary);
+  overflow-x: auto;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.io-export-btn {
+  justify-content: flex-start;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  text-align: left;
+}
+
+.io-export-btn .io-export-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.io-export-btn .io-export-desc {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.io-import-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.io-import-options label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.io-import-options select {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+}

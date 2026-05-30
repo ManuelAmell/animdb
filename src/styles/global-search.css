@@ -1,0 +1,190 @@
+.global-search-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(420px, calc(100vw - 32px));
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--bg2);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: var(--glass);
+  z-index: 300;
+  padding: 8px;
+}
+
+.global-search-panel.hidden {
+  display: none;
+}
+
+.gs-section {
+  padding: 4px 0 8px;
+}
+
+.gs-section + .gs-section {
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+  padding-top: 10px;
+}
+
+.gs-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  padding: 4px 10px 8px;
+}
+
+.gs-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.gs-item:hover,
+.gs-item:focus-visible {
+  background: var(--surface-hover);
+  outline: none;
+}
+
+.gs-thumb {
+  width: 40px;
+  height: 56px;
+  border-radius: 6px;
+  object-fit: cover;
+  background: var(--bg3);
+  flex-shrink: 0;
+}
+
+.gs-thumb-placeholder {
+  width: 40px;
+  height: 56px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.gs-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.gs-title {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gs-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.gs-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  background: rgba(48, 209, 88, 0.15);
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.gs-badge.new {
+  background: rgba(10, 132, 255, 0.15);
+  color: var(--accent);
+}
+
+.gs-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.gs-rate-btn,
+.gs-action-btn {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.gs-rate-btn:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #000;
+}
+
+.gs-action-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.gs-action-btn.primary {
+  background: rgba(10, 132, 255, 0.15);
+  border-color: rgba(10, 132, 255, 0.35);
+  color: var(--accent);
+}
+
+.gs-action-btn.primary:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.gs-empty,
+.gs-loading {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.gs-hint {
+  padding: 8px 10px 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.gs-rating-row {
+  display: flex;
+  gap: 3px;
+  margin-top: 6px;
+}
+
+.gs-rating-row button {
+  padding: 2px 6px;
+  font-size: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.gs-rating-row button:hover {
+  background: var(--green);
+  border-color: var(--green);
+  color: #000;
+}
