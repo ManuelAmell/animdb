@@ -8,10 +8,33 @@ export interface MediaItem {
   rating: number;
   notes?: string;
   moods: string[];
+  tags: string[];
   isAnime: boolean;
   coverUrl?: string;
   priority: number;
+  userId?: number;
 }
+
+export interface AuthUser {
+  id: number;
+  username: string;
+}
+
+export interface SavedFilter {
+  id?: number;
+  name: string;
+  contentFilter: ContentFilter;
+  temaId?: string | null;
+  status?: MediaItem['status'] | null;
+  minRating?: number;
+  listFilter?: FilterType;
+  tag?: string | null;
+}
+
+export type ContentFilter = 'all' | 'anime' | 'cinema';
+export type ViewType = 'list' | 'ranking' | 'temas' | 'pendientes' | 'kanban';
+export type RankFilter = 'all' | 'movie' | 'series' | 'unrated' | 'tema';
+export type KanbanGroup = 'status' | 'tema';
 
 export interface Theme {
   id: string;
@@ -20,9 +43,8 @@ export interface Theme {
   color: string;
 }
 
-export type ViewType = 'list' | 'ranking' | 'temas' | 'pendientes';
 export type FilterType = 'all' | 'top' | 'pending';
-export type PendingDisplayStyle = 'grid' | 'list';
+export type PendingDisplayStyle = 'grid' | 'list' | 'kanban';
 
 export const THEMES: Theme[] = [
   { id: 'triste', emoji: '😢', name: 'Triste', color: '#5E9BF5' },

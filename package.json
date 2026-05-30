@@ -1,6 +1,6 @@
 {
   "name": "animdb",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "AniMDB - Anime and Movie Database",
   "author": "AniMDB",
   "main": "electron/main.js",
@@ -13,6 +13,8 @@
     "stop": "pkill -f \"node index.js\" && pkill -f \"vite\"",
     "dev:all": "concurrently \"npm run dev\" \"cd server && npm run dev\"",
     "build": "tsc && vite build",
+    "lint": "eslint src",
+    "format": "prettier --write \"src/**/*.{ts,css}\" index.html",
     "preview": "vite preview",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "vite build && electron-builder",
@@ -21,10 +23,14 @@
     "build:linux": "npm run build && electron-builder --linux"
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "concurrently": "^8.2.2",
     "electron": "^28.0.0",
     "electron-builder": "^26.8.1",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
     "typescript": "^5.3.3",
+    "typescript-eslint": "^8.18.2",
     "vite": "^5.0.10",
     "wait-on": "^7.2.0"
   },

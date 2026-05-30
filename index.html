@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AniMDB — Tu lista personal</title>
   <link rel="icon" type="image/png" href="/icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0a0a0f">
   <style>
     @font-face {
       font-family: 'SF Pro Display';
@@ -39,11 +41,31 @@
         <button class="nav-tab active" role="tab" aria-selected="true" id="tabLista" onclick="app.switchView('list')">Lista</button>
         <button class="nav-tab" role="tab" aria-selected="false" id="tabRanking" onclick="app.switchView('ranking')">Ranking</button>
         <button class="nav-tab" role="tab" aria-selected="false" id="tabPendientes" onclick="app.switchView('pendientes')">Pendientes</button>
+        <button class="nav-tab" role="tab" aria-selected="false" id="tabKanban" onclick="app.switchView('kanban')">Kanban</button>
         <button class="nav-tab" role="tab" aria-selected="false" id="tabTemas" onclick="app.switchView('temas')">Temas</button>
         <span class="save-indicator" id="saveIndicator" aria-live="polite">Guardado</span>
       </div>
 
       <div class="nav-right">
+        <div class="content-filter-pill" role="group" aria-label="Filtrar contenido">
+          <button type="button" class="cf-tab active" data-content-filter="all" onclick="app.setContentFilter('all')">Todo</button>
+          <button type="button" class="cf-tab" data-content-filter="anime" onclick="app.setContentFilter('anime')">Anime</button>
+          <button type="button" class="cf-tab" data-content-filter="cinema" onclick="app.setContentFilter('cinema')">Cine</button>
+        </div>
+
+        <button class="btn btn-ghost" id="bulkModeBtn" onclick="app.toggleBulkMode()" title="Selección múltiple">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </button>
+
+        <button class="btn btn-ghost" id="authUserBtn" onclick="app.openAuthModal()" title="Cuenta de usuario">
+          <span id="authUserLabel">local</span>
+        </button>
+
+        <button class="conn-pill" id="connPill" onclick="app.openNetworkModal()" title="Configurar conexión" aria-label="Estado de conexión">
+          <span class="conn-dot" id="connDot"></span>
+          <span id="connLabel">Conectando…</span>
+        </button>
+
         <div class="search-wrap">
           <span aria-hidden="true" class="search-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -51,11 +73,28 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
           </span>
-          <input type="search" class="search-input" id="searchInput" placeholder="Buscar…" 
-            aria-label="Buscar en tu lista" oninput="app.filterContent()">
+          <input type="search" class="search-input" id="searchInput" placeholder="Buscar, añadir o puntuar…" 
+            aria-label="Buscar en tu lista o descubrir contenido" autocomplete="off" aria-expanded="false" aria-controls="globalSearchPanel">
+          <div class="global-search-panel hidden" id="globalSearchPanel" role="listbox" aria-label="Resultados de búsqueda">
+            <div class="gs-hint">Tu colección · Descubrir · Añadir · Puntuar</div>
+            <div class="gs-section" id="globalSearchLocal"></div>
+            <div class="gs-section" id="globalSearchExternal"></div>
+          </div>
         </div>
 
-        <button class="btn btn-ghost" onclick="app.autoFetchCovers()" title="Buscar carátulas para lo que falta">
+        <button class="btn btn-ghost" id="themeToggleBtn" onclick="app.toggleTheme()" title="Cambiar tema claro/oscuro" aria-label="Cambiar tema">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          </svg>
+        </button>
+
+        <button class="btn btn-ghost" onclick="app.openShortcutsModal()" title="Atajos de teclado (?)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </button>
+
+        <button class="btn btn-ghost" onclick="app.autoFetchCovers()" title="Buscar carátulas faltantes en lote">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="m12 3-1.912 5.313a2 2 0 0 1-1.275 1.275L3 12v5h5l3.288-3.288a2 2 0 0 1 1.713-.712L12 9"/>
           </svg>
@@ -71,6 +110,10 @@
           <span class="btn-text">Exportar</span>
         </button>
 
+        <button class="btn btn-ghost" onclick="app.openExternalImportModal()" title="Importar AniList, MAL, Trakt, Letterboxd">
+          <span class="btn-text">Listas</span>
+        </button>
+
         <button class="btn btn-ghost" onclick="app.openImportModal()" title="Importar Lista">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -80,7 +123,7 @@
           <span class="btn-text">Importar</span>
         </button>
 
-        <input type="file" id="importFile" accept=".json,.txt" style="display:none" 
+        <input type="file" id="importFile" accept=".json,.txt,.csv,.md" style="display:none" 
           aria-label="Importar archivo" onchange="app.importData(event)">
 
         <button class="btn btn-primary" onclick="app.openAddModal()" aria-label="Añadir nueva entrada">
@@ -92,6 +135,11 @@
         </button>
       </div>
     </nav>
+
+    <div class="load-banner hidden" id="loadBanner" role="status" aria-live="polite">
+      <span id="loadBannerMsg">Cargando tu colección…</span>
+      <button class="btn btn-ghost btn-sm hidden" id="loadRetryBtn" onclick="app.retryLoad()">Reintentar</button>
+    </div>
 
     <main role="main">
       <!-- LIST VIEW -->
@@ -117,6 +165,23 @@
           </div>
         </div>
 
+        <section class="insights-panel" id="insightsPanel" aria-label="Estadísticas de tu colección"></section>
+
+        <div class="list-controls">
+          <label for="listSort" class="sr-only">Ordenar lista</label>
+          <select id="listSort" class="sort-select" onchange="app.setListSort(this.value)" aria-label="Ordenar lista">
+            <option value="default">Orden predeterminado</option>
+            <option value="rating">Por puntuación</option>
+            <option value="title">Por título</option>
+            <option value="year">Por año</option>
+          </select>
+          <div class="saved-filters-wrap">
+            <input type="text" id="filterPresetName" placeholder="Nombre del filtro…" class="filter-preset-input">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="app.saveCurrentFilter()">Guardar filtro</button>
+          </div>
+          <div class="saved-filters-list" id="savedFiltersList"></div>
+        </div>
+
         <section class="section" id="moviesSection">
           <div class="section-header">
             <div class="section-title">
@@ -127,7 +192,7 @@
               </svg>
               Películas <span class="badge" id="movieCount">0</span>
             </div>
-            <div class="filter-tabs" role="group" aria-label="Filtrar películas">
+            <div class="filter-tabs" id="movieFilters" role="group" aria-label="Filtrar películas">
               <button class="filter-tab active" onclick="app.setFilter('movies', 'all', this)">Todas</button>
               <button class="filter-tab" onclick="app.setFilter('movies', 'top', this)">Top</button>
               <button class="filter-tab" onclick="app.setFilter('movies', 'pending', this)">Pendientes</button>
@@ -145,7 +210,7 @@
               </svg>
               Series <span class="badge" id="seriesCount">0</span>
             </div>
-            <div class="filter-tabs" role="group" aria-label="Filtrar series">
+            <div class="filter-tabs" id="seriesFilters" role="group" aria-label="Filtrar series">
               <button class="filter-tab active" onclick="app.setFilter('series', 'all', this)">Todas</button>
               <button class="filter-tab" onclick="app.setFilter('series', 'top', this)">Top</button>
               <button class="filter-tab" onclick="app.setFilter('series', 'pending', this)">Pendientes</button>
@@ -178,10 +243,13 @@
           </div>
         </div>
         <div class="rank-filter-row" role="group" aria-label="Filtrar ranking">
-          <button class="filter-tab active" onclick="app.setRankFilter('all', this)">Todas</button>
-          <button class="filter-tab" onclick="app.setRankFilter('movie', this)">Películas</button>
-          <button class="filter-tab" onclick="app.setRankFilter('series', this)">Series</button>
-          <button class="filter-tab" onclick="app.setRankFilter('unrated', this)" style="margin-left:auto">Sin puntuar</button>
+          <button class="filter-tab active" onclick="app.setRankFilter('all', this); app.setRankTemaFilter(null)">Todas</button>
+          <button class="filter-tab" onclick="app.setRankFilter('movie', this); app.setRankTemaFilter(null)">Películas</button>
+          <button class="filter-tab" onclick="app.setRankFilter('series', this); app.setRankTemaFilter(null)">Series</button>
+          <button class="filter-tab" onclick="app.setRankFilter('tema', this); app.setRankTemaFilter('triste', this)">😢 Triste</button>
+          <button class="filter-tab" onclick="app.setRankFilter('tema', this); app.setRankTemaFilter('accion', this)">⚔️ Acción</button>
+          <button class="filter-tab" onclick="app.setRankFilter('tema', this); app.setRankTemaFilter('romance', this)">💕 Romance</button>
+          <button class="filter-tab" onclick="app.setRankFilter('unrated', this); app.setRankTemaFilter(null)" style="margin-left:auto">Sin puntuar</button>
         </div>
         <div class="rank-list" id="rankList" role="list"></div>
       </div>
@@ -196,6 +264,7 @@
           <div style="display: flex; gap: 8px;">
             <button class="btn btn-ghost" id="pendingGridBtn" onclick="app.setPendingStyle('grid')">Cuadrícula</button>
             <button class="btn btn-ghost" id="pendingListBtn" onclick="app.setPendingStyle('list')">Lista</button>
+            <button class="btn btn-ghost" onclick="app.switchView('kanban')">Kanban</button>
           </div>
         </div>
         <div id="pendingGridArea">
@@ -231,6 +300,21 @@
         </div>
         <div class="temas-grid" id="temasGrid" role="list"></div>
         <div class="tema-detail" id="temaDetail" style="display:none"></div>
+      </div>
+
+      <!-- KANBAN VIEW -->
+      <div id="kanbanView" class="view" role="tabpanel" aria-labelledby="tabKanban" style="display:none">
+        <div class="hero" style="margin-bottom: 20px;">
+          <div class="hero-left">
+            <h1>Tablero <span>Kanban</span></h1>
+            <p>Organiza por estado o por temas emocionales.</p>
+          </div>
+          <div class="kanban-toggle">
+            <button type="button" class="btn btn-primary btn-sm" onclick="app.setKanbanGroup('status')">Por estado</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="app.setKanbanGroup('tema')">Por temas</button>
+          </div>
+        </div>
+        <div class="kanban-board" id="kanbanBoard"></div>
       </div>
     </main>
 
@@ -335,6 +419,10 @@
           <label>Temas / Estado de ánimo</label>
           <div class="mood-chips" id="moodChips" role="group"></div>
         </div>
+        <div class="field">
+          <label for="fTags">Tags personalizados</label>
+          <input type="text" id="fTags" placeholder="#rewatch #con-amigos (separados por espacio)">
+        </div>
         <div class="modal-actions">
           <button class="btn btn-ghost btn-danger" id="deleteBtn" onclick="app.deleteCurrentItem()" style="display:none">Eliminar</button>
           <button class="btn btn-ghost" id="removeCoverBtn" onclick="app.removeCover()" style="display:none">Quitar Carátula</button>
@@ -400,40 +488,38 @@
 
     <!-- IMPORT MODAL -->
     <div class="modal-backdrop" id="importModal" role="dialog" aria-modal="true" aria-labelledby="importModalTitle">
-      <div class="modal" style="max-width: 450px;">
+      <div class="modal" style="max-width: 520px;">
         <div class="modal-title">
           <span id="importModalTitle">Importar Datos</span>
           <button class="modal-close" onclick="app.closeModal('importModal')" aria-label="Cerrar">✕</button>
         </div>
-        <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
-          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-            <h4 style="margin-top: 0; color: var(--accent); display: flex; align-items: center; gap: 8px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="17 8 12 3 7 8"/>
-                <line x1="12" y1="3" x2="12" y2="15"/>
-              </svg>
-              Respaldo JSON
-            </h4>
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 8px 0 0 0;">
-              Restaura tu base de datos completa con todas las notas, fechas y estados.
-            </p>
+        <p style="font-size: 13px; color: var(--text-secondary); margin: 0 0 16px;">
+          Soporta JSON, CSV y TXT. Se detecta el formato automáticamente.
+        </p>
+        <div class="io-import-options">
+          <label for="importModeSelect">Si el título ya existe en tu lista:</label>
+          <select id="importModeSelect" onchange="app.setImportMode(this.value)">
+            <option value="merge">Omitir duplicados (solo añadir nuevos)</option>
+            <option value="update">Actualizar puntuación y metadatos</option>
+          </select>
+        </div>
+        <div class="io-format-grid">
+          <div class="io-format-card">
+            <h4 style="color: var(--accent);">JSON · Respaldo completo</h4>
+            <p>Restaura toda la colección: notas, estados, moods, carátulas y prioridad.</p>
+            <code>{ "version": 2, "items": [ ... ] }</code>
           </div>
-          <div style="background: rgba(255,255,255,0.05); padding: 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
-            <h4 style="margin-top: 0; color: var(--green); display: flex; align-items: center; gap: 8px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-              </svg>
-              Lista de Texto (.txt)
-            </h4>
-            <p style="font-size: 13px; color: var(--text-secondary); margin: 8px 0 8px 0;">
-              Importa una lista rápida. El formato debe ser una línea por cada entrada:
-            </p>
-            <code style="display: block; background: #000; padding: 8px; border-radius: 6px; font-size: 12px; color: #fff; overflow-x: auto;">
-              Nombre - Puntuación<br>
-              Ej: Evangelion - 9.5
-            </code>
+          <div class="io-format-card">
+            <h4 style="color: var(--green);">CSV · Hoja de cálculo</h4>
+            <p>Ideal para editar en Excel/Sheets. Cabecera: title, type, year, genre, status, rating…</p>
+            <code>Evangelion,series,1995,Mecha,watched,9.5,,accion;psicologico,1</code>
+          </div>
+          <div class="io-format-card">
+            <h4 style="color: var(--orange);">TXT · Lista rápida</h4>
+            <p>Varios formatos por línea. Líneas con <code style="display:inline;padding:2px 4px;">#</code> se ignoran.</p>
+            <code>Evangelion - 9.5
+[series] Frieren (2023)
+Steins;Gate | 10 | series | 2011 | Sci-Fi | watched</code>
           </div>
         </div>
         <div class="modal-actions">
@@ -447,40 +533,43 @@
 
     <!-- EXPORT MODAL -->
     <div class="modal-backdrop" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
-      <div class="modal" style="max-width: 450px;">
+      <div class="modal" style="max-width: 520px;">
         <div class="modal-title">
           <span id="exportModalTitle">Exportar Datos</span>
           <button class="modal-close" onclick="app.closeModal('exportModal')" aria-label="Cerrar">✕</button>
         </div>
-        <p style="font-size: 14px; color: var(--text-secondary); margin-bottom: 20px;">
-          Elige el formato de salida para tu colección.
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+          Elige el formato según para qué lo vayas a usar.
         </p>
-        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-          <button class="btn btn-ghost" onclick="app.closeModal('exportModal'); app.exportData()" 
-            style="justify-content: flex-start; padding: 16px; border: 1px solid rgba(255,255,255,0.1); width: 100%;">
-            <div style="display: flex; align-items: center; gap: 12px; text-align: left;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/>
-                <line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              <div>
-                <div style="font-weight: 600; color: var(--accent);">Respaldo JSON</div>
-                <div style="font-size: 12px; opacity: 0.7;">Backup completo para restaurar.</div>
-              </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+          <button class="btn btn-ghost io-export-btn" onclick="app.closeModal('exportModal'); app.exportAs('json')">
+            <div>
+              <div class="io-export-title" style="color: var(--accent);">JSON · Backup completo</div>
+              <div class="io-export-desc">Restauración total con metadatos v2 y fecha de exportación.</div>
             </div>
           </button>
-          <button class="btn btn-ghost" onclick="app.closeModal('exportModal'); app.exportToTxt()" 
-            style="justify-content: flex-start; padding: 16px; border: 1px solid rgba(255,255,255,0.1); width: 100%;">
-            <div style="display: flex; align-items: center; gap: 12px; text-align: left;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-              </svg>
-              <div>
-                <div style="font-weight: 600; color: var(--green);">Lista TXT</div>
-                <div style="font-size: 12px; opacity: 0.7;">Formato simple para compartir.</div>
-              </div>
+          <button class="btn btn-ghost io-export-btn" onclick="app.closeModal('exportModal'); app.exportAs('csv')">
+            <div>
+              <div class="io-export-title" style="color: var(--green);">CSV · Excel / Sheets</div>
+              <div class="io-export-desc">Todos los campos en columnas editables.</div>
+            </div>
+          </button>
+          <button class="btn btn-ghost io-export-btn" onclick="app.closeModal('exportModal'); app.exportAs('txt')">
+            <div>
+              <div class="io-export-title" style="color: var(--orange);">TXT · Lista simple</div>
+              <div class="io-export-desc">Solo títulos puntuados, ordenados por nota.</div>
+            </div>
+          </button>
+          <button class="btn btn-ghost io-export-btn" onclick="app.closeModal('exportModal'); app.exportAs('txt-full')">
+            <div>
+              <div class="io-export-title" style="color: var(--text-primary);">TXT · Exportación completa</div>
+              <div class="io-export-desc">Todos los campos separados por <code style="display:inline;">|</code>, reimportable.</div>
+            </div>
+          </button>
+          <button class="btn btn-ghost io-export-btn" onclick="app.closeModal('exportModal'); app.exportAs('markdown')">
+            <div>
+              <div class="io-export-title" style="color: #c084fc;">Markdown · Compartir</div>
+              <div class="io-export-desc">Lista agrupada por estrellas, ideal para Reddit o Discord.</div>
             </div>
           </button>
         </div>
@@ -490,7 +579,178 @@
       </div>
     </div>
 
+    <!-- NETWORK MODAL -->
+    <div class="modal-backdrop network-modal" id="networkModal" role="dialog" aria-modal="true" aria-labelledby="networkModalTitle">
+      <div class="modal">
+        <div class="modal-title">
+          <span id="networkModalTitle">Centro de Conexión</span>
+          <button class="modal-close" onclick="app.closeModal('networkModal')" aria-label="Cerrar">✕</button>
+        </div>
+
+        <div class="network-hero">
+          <p>AniMDB funciona en tu PC sin Tailscale. Actívalo solo si quieres acceder desde otro dispositivo.</p>
+        </div>
+
+        <div class="network-modes" role="radiogroup" aria-label="Modo de conexión">
+          <button type="button" class="network-mode-card" data-mode="auto" onclick="app.setNetworkMode('auto')">
+            <div class="network-mode-icon">✨</div>
+            <div class="network-mode-title">Automático</div>
+            <div class="network-mode-desc">Detecta solo, local o remoto según dónde abras la app.</div>
+          </button>
+          <button type="button" class="network-mode-card" data-mode="local" onclick="app.setNetworkMode('local')">
+            <div class="network-mode-icon">🏠</div>
+            <div class="network-mode-title">Solo este PC</div>
+            <div class="network-mode-desc">Sin Tailscale. Ideal para uso diario en tu máquina.</div>
+          </button>
+          <button type="button" class="network-mode-card" data-mode="tailscale" onclick="app.setNetworkMode('tailscale')">
+            <div class="network-mode-icon">🌐</div>
+            <div class="network-mode-title">Tailscale</div>
+            <div class="network-mode-desc">Accede desde móvil, tablet u otro PC en tu red privada.</div>
+          </button>
+          <button type="button" class="network-mode-card" data-mode="custom" onclick="app.setNetworkMode('custom')">
+            <div class="network-mode-icon">⚙️</div>
+            <div class="network-mode-title">Personalizado</div>
+            <div class="network-mode-desc">IP o hostname manual si necesitas otro servidor.</div>
+          </button>
+        </div>
+
+        <div class="network-panel" id="tailscalePanel">
+          <div class="network-panel-title">Tailscale en este equipo</div>
+          <div id="tailscaleStatus"></div>
+          <div class="network-row" style="margin-top:12px">
+            <input type="text" class="network-input" id="tailscaleIpInput" placeholder="100.x.x.x" aria-label="IP de Tailscale">
+            <button class="btn btn-ghost btn-sm" onclick="app.detectTailscaleIp()">Detectar</button>
+          </div>
+          <div class="network-row">
+            <div class="share-box" id="shareUrlBox">—</div>
+            <button class="btn btn-primary btn-sm" onclick="app.copyShareUrl()">Copiar</button>
+          </div>
+          <p style="font-size:12px;color:var(--text-tertiary);margin-top:8px">Abre ese enlace en otro dispositivo con Tailscale instalado.</p>
+        </div>
+
+        <div class="network-panel" id="customPanel" style="display:none">
+          <div class="network-panel-title">Servidor personalizado</div>
+          <div class="network-row">
+            <input type="text" class="network-input" id="customHostInput" placeholder="IP o hostname" aria-label="Host del servidor">
+            <input type="number" class="network-input" id="backendPortInput" placeholder="5174" style="max-width:90px" aria-label="Puerto backend">
+          </div>
+        </div>
+
+        <div class="network-panel">
+          <div class="network-panel-title">Estado actual</div>
+          <div id="networkStatusDetail"></div>
+          <div class="network-status-line">
+            <span id="networkLatency"></span>
+            <button class="btn btn-ghost btn-sm" onclick="app.testConnection()">Probar conexión</button>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="app.closeModal('networkModal')">Cerrar</button>
+          <button class="btn btn-primary" onclick="app.saveNetworkSettings()">Guardar y reconectar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTH MODAL -->
+    <div class="modal-backdrop" id="authModal" role="dialog" aria-modal="true">
+      <div class="modal" style="max-width:400px">
+        <div class="modal-title">Cuenta de usuario <button class="modal-close" onclick="app.closeModal('authModal')">✕</button></div>
+        <p style="font-size:13px;color:var(--text-secondary);margin:0 0 16px">Cada usuario tiene su colección y tags propios.</p>
+        <div class="field"><label for="authUsername">Usuario</label><input type="text" id="authUsername" autocomplete="username"></div>
+        <div class="field"><label for="authPassword">Contraseña</label><input type="password" id="authPassword" autocomplete="current-password"></div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="app.submitLogout()">Salir</button>
+          <button class="btn btn-ghost" onclick="app.submitAuth('login')">Entrar</button>
+          <button class="btn btn-primary" onclick="app.submitAuth('register')">Crear cuenta</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXTERNAL IMPORT MODAL -->
+    <div class="modal-backdrop" id="externalImportModal" role="dialog" aria-modal="true">
+      <div class="modal" style="max-width:520px">
+        <div class="modal-title">Importar listas externas <button class="modal-close" onclick="app.closeModal('externalImportModal')">✕</button></div>
+        <div class="field">
+          <label for="externalImportSource">Fuente</label>
+          <select id="externalImportSource">
+            <option value="auto">Detectar automáticamente</option>
+            <option value="anilist">AniList</option>
+            <option value="mal">MyAnimeList (Jikan)</option>
+            <option value="trakt">Trakt</option>
+            <option value="letterboxd">Letterboxd (CSV)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="externalImportInput">Usuario, URL o CSV</label>
+          <textarea id="externalImportInput" rows="4" placeholder="Ej: anilist:Usuario · https://anilist.co/user/Usuario · mal:Usuario · trakt:Usuario"></textarea>
+        </div>
+        <div class="field">
+          <label>Letterboxd CSV</label>
+          <input type="file" accept=".csv" onchange="app.importLetterboxdFile(event)">
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-ghost" onclick="app.closeModal('externalImportModal')">Cancelar</button>
+          <button class="btn btn-primary" onclick="app.importExternalList()">Importar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- COVER PROGRESS MODAL -->
+    <div class="modal-backdrop" id="coverProgressModal">
+      <div class="modal" style="max-width:420px;text-align:center">
+        <div class="modal-title">Buscando carátulas…</div>
+        <p id="coverProgressLabel" style="font-size:13px;color:var(--text-secondary)">Preparando…</p>
+        <div class="cover-progress-track"><div class="cover-progress-bar" id="coverProgressBar"></div></div>
+      </div>
+    </div>
+
+    <!-- QUICK RATE POPOVER -->
+    <div class="quick-rate-popover hidden" id="quickRatePopover" role="dialog" aria-label="Puntuación rápida">
+      <div class="quick-rate-header">Puntuar</div>
+      <div class="quick-rate-grid" id="quickRateGrid"></div>
+    </div>
+
+    <!-- SHORTCUTS MODAL -->
+    <div class="modal-backdrop" id="shortcutsModal" role="dialog" aria-modal="true" aria-labelledby="shortcutsModalTitle">
+      <div class="modal" style="max-width: 420px;">
+        <div class="modal-title">
+          <span id="shortcutsModalTitle">Atajos de teclado</span>
+          <button class="modal-close" onclick="app.closeModal('shortcutsModal')" aria-label="Cerrar">✕</button>
+        </div>
+        <ul class="shortcuts-list">
+          <li><kbd>N</kbd><span>Nueva entrada</span></li>
+          <li><kbd>?</kbd><span>Mostrar atajos</span></li>
+          <li><kbd>Esc</kbd><span>Cerrar modales</span></li>
+          <li><kbd>/</kbd><span>Buscar, añadir y puntuar</span></li>
+        </ul>
+        <div class="modal-actions">
+          <button class="btn btn-primary" style="width:100%" onclick="app.closeModal('shortcutsModal')">Entendido</button>
+        </div>
+      </div>
+    </div>
+
     <!-- TOAST -->
+    <div class="bulk-bar" id="bulkBar">
+      <span><strong id="bulkCount">0</strong> seleccionados</span>
+      <select onchange="if(this.value){app.applyBulkAction(this.value);this.value=''}">
+        <option value="">Acción masiva…</option>
+        <option value="status:watched">Marcar visto</option>
+        <option value="status:watching">Marcar viendo</option>
+        <option value="status:pending">Marcar pendiente</option>
+        <option value="status:dropped">Marcar drop</option>
+        <option value="rating:8">Puntuar ★8</option>
+        <option value="rating:9">Puntuar ★9</option>
+        <option value="rating:10">Puntuar ★10</option>
+        <option value="mood:triste">+ Tema triste</option>
+        <option value="mood:accion">+ Tema acción</option>
+        <option value="tag">Añadir tag (abajo)</option>
+        <option value="delete">Eliminar</option>
+      </select>
+      <input type="text" id="bulkTagInput" placeholder="#tag" class="bulk-tag-input">
+      <button type="button" class="btn btn-ghost btn-sm" onclick="app.toggleBulkMode()">Cancelar</button>
+    </div>
+
     <div class="toast" id="toast" role="alert" aria-live="polite">
       <span id="toastIcon">✓</span>
       <span id="toastMsg">Guardado</span>

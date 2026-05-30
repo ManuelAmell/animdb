@@ -1,40 +1,53 @@
 # API Reference
 
-Este documento describe las APIs externas usadas en AniMDB para buscar metadatos, y la API del backend local.
+Backend local en puerto **5174**. Metadatos externos vía proxy o cliente.
 
-## API del Backend (Local)
+## Autenticación
 
-El servidor Express corre en el puerto `5174` y provee:
+Header opcional en rutas protegidas:
 
-### Endpoints REST
+```
+Authorization: Bearer <token>
+```
+
+Sin token → usuario `local` (id `1`).
 
 | Método | Endpoint | Descripción |
 |--------|----------|-------------|
-| GET | `/api/items` | Obtiene todos los items |
-| POST | `/api/items` | Crea un nuevo item |
-| PUT | `/api/items/:id` | Actualiza un item |
-| DELETE | `/api/items/:id` | Elimina un item |
+| POST | `/api/auth/register` | `{ username, password }` → token + user |
+| POST | `/api/auth/login` | `{ username, password }` → token + user |
+| POST | `/api/auth/logout` | Invalida token actual |
+| GET | `/api/auth/me` | Usuario de la sesión |
 
-### WebSocket
+WebSocket: enviar token en `auth.token` al conectar (`socket.io`).
 
-El servidor usa Socket.io para sincronización en tiempo real.
+---
 
-- **Evento**: `items:updated` - Se emite cuando hay cambios en los items
-- **Puerto**: `5174`
+## Items
 
-### Estructura de Item
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/items` | Lista del usuario actual |
+| POST | `/api/items` | Crear item |
+| PUT | `/api/items/:id` | Actualizar item |
+| DELETE | `/api/items/:id` | Eliminar item |
+| POST | `/api/items/bulk` | `{ ids: number[], patch: Partial<MediaItem> }` |
+
+### MediaItem
 
 ```typescript
 interface MediaItem {
   id: number;
+  userId?: number;
   title: string;
   type: 'movie' | 'series';
   year?: string;
   genre?: string;
-  status: 'pending' | 'watched' | 'watching';
+  status: 'watched' | 'watching' | 'pending' | 'dropped';
   rating: number;
   notes?: string;
-  moods: string[];
+  moods: string[];      // IDs de THEMES
+  tags: string[];       // libres, ej. "#rewatch"
   isAnime: boolean;
   coverUrl?: string;
   priority: number;
@@ -43,88 +56,83 @@ interface MediaItem {
 
 ---
 
-## APIs Externas (Búsqueda de Metadatos)
+## Filtros guardados
 
-### smartSearch(query, isAnime, year)
-
-Búsqueda inteligente multi-fuente priorizando resultados por:
-- Coincidencia exacta de título
-- Año de lanzamiento
-- Fuente preferida (Jikan para anime, TMDB para general)
-
-**Parámetros:**
-- `query` (string): Término de búsqueda
-- `isAnime` (boolean): Si priorizar fuentes de anime
-- `year` (string, opcional): Año de lanzamiento
-
-**Retorna:** `Promise<SearchResult[]>`
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/filters` | Filtros del usuario |
+| POST | `/api/filters` | Crear filtro `{ name, contentFilter, temaId, ... }` |
+| DELETE | `/api/filters/:id` | Eliminar filtro |
 
 ---
 
-### fetchByIMDBId(imdbId)
+## Importación (servidor → cliente)
 
-Obtiene datos de película/serie por ID de IMDB usando OMDb API.
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/import/anilist/:username` | Lista anime AniList |
+| GET | `/api/import/mal/:username` | Lista anime MAL (Jikan) |
+| GET | `/api/import/trakt/:username` | Ratings públicos Trakt |
 
-**Parámetros:**
-- `imdbId` (string): ID de IMDB (ej: "tt0468569")
-
-**Retorna:** `Promise<SearchResult | null>`
-
----
-
-### fetchByKitsuId(kitsuId)
-
-Obtiene datos de anime por ID de Kitsu.
-
-**Parámetros:**
-- `kitsuId` (string): ID de Kitsu (ej: "1")
-
-**Retorna:** `Promise<SearchResult | null>`
+Trakt requiere `TRAKT_CLIENT_ID` en el servidor.
 
 ---
 
-### fetchByAnimeListId(animeListId)
+## Red
 
-Obtiene datos de anime por ID de MyAnimeList (via Jikan) o Kitsu.
-
-**Parámetros:**
-- `animeListId` (string): ID de MAL o Kitsu
-
-**Retorna:** `Promise<SearchResult | null>`
-
-**Nota:** Intenta Kitsu primero, luego recurre a MyAnimeList (Jikan).
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/network/info` | IPs, Tailscale, puertos, shareUrl |
+| GET | `/api/network/ping` | `{ ok, ts }` |
 
 ---
 
-## Estructuras de Datos
+## Metadatos (proxy)
 
-### SearchResult
-```typescript
-interface SearchResult {
-  title: string;
-  img: string;
-  year: string;
-  type: 'movie' | 'series';
-  genres: string;
-  source: string;
-  _score?: number;
-}
-```
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/api/metadata/tmdb/search?q=` | Búsqueda TMDB |
+| GET | `/api/metadata/omdb?i=` | Detalle por IMDB id |
+
+Variables: `TMDB_API_KEY`, `OMDB_API_KEY`.
 
 ---
 
-## APIs Externas Usadas
+## WebSocket
 
-| API | Propósito | Límite |
-|-----|-----------|--------|
-| OMDb API | Búsquedas IMDB | 1000/día (key gratuita) |
-| Kitsu API | Anime por ID | Sin auth |
-| Jikan API | MyAnimeList por ID | 3 req/seg |
-| TMDB | Búsqueda general | Requiere API key |
-| TVMaze | Búsqueda de series | Sin auth |
+- **Evento emitido**: `items:updated` — array completo de items del usuario
+- **Salas**: `user:{userId}` — cada cliente recibe solo su colección
 
 ---
 
-## Persistencia de Datos
+## Cliente — búsqueda de metadatos (`src/api.ts`)
 
-Los datos se almacenan en `server/animdb.db` (SQLite). No se usa localStorage.
+| Función | Fuente |
+|---------|--------|
+| `smartSearch` | TMDB, Jikan, TVMaze, iTunes (scoring) |
+| `fetchByIMDBId` | OMDb (proxy) |
+| `fetchByKitsuId` | Kitsu |
+| `fetchByAnimeListId` | Kitsu → MAL |
+
+---
+
+## APIs externas
+
+| API | Uso | Límite |
+|-----|-----|--------|
+| AniList GraphQL | Import listas | Público |
+| Jikan | MAL search + listas | ~3 req/s |
+| Trakt | Import ratings | Client ID |
+| TMDB | Metadatos | API key |
+| OMDb | IMDB id | API key |
+| Kitsu / TVMaze / iTunes | Búsqueda | Sin auth |
+
+---
+
+## Persistencia
+
+SQLite: `server/animdb.db`
+
+Tablas: `items`, `users`, `sessions`, `saved_filters`.
+
+Ver [IMPORT.md](IMPORT.md) para formatos de archivo.

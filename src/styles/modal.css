@@ -136,3 +136,89 @@
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
+
+.io-format-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.io-format-card {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.io-format-card h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.io-format-card p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0 0 8px;
+  line-height: 1.45;
+}
+
+.io-format-card code {
+  display: block;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--text-primary);
+  overflow-x: auto;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.io-export-btn {
+  justify-content: flex-start;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  text-align: left;
+}
+
+.io-export-btn .io-export-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.io-export-btn .io-export-desc {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.io-import-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.io-import-options label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.io-import-options select {
+  width: 100%;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text-primary);
+}

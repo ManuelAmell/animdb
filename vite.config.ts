@@ -10,9 +10,9 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html')
-      }
-    }
+        main: resolve(__dirname, 'index.html'),
+      },
+    },
   },
   server: {
     host: '0.0.0.0',
@@ -21,13 +21,17 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'http://localhost:5174',
-        changeOrigin: true
-      }
-    }
+        changeOrigin: true,
+      },
+      '/socket.io': {
+        target: 'http://localhost:5174',
+        ws: true,
+      },
+    },
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src')
-    }
-  }
+      '@': resolve(__dirname, 'src'),
+    },
+  },
 });

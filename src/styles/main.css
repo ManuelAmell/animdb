@@ -15,6 +15,12 @@
 @import './detail.css';
 @import './utilities.css';
 @import './layout.css';
+@import './theme.css';
+@import './features.css';
+@import './network.css';
+@import './global-search.css';
+@import './bulk.css';
+@import './kanban.css';
 
 html {
   background: #000;
