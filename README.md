@@ -23,6 +23,7 @@ Documentación detallada:
 
 - [FEATURES.md](FEATURES.md) — guía de uso de la interfaz
 - [IMPORT.md](IMPORT.md) — formatos de import/export y listas externas
+- [SCRIPTS.md](SCRIPTS.md) — arranque, deploy y SSH en segundo plano
 - [API.md](API.md) — REST, WebSocket y metadatos
 - [CHANGELOG.md](CHANGELOG.md) — historial de versiones
 
@@ -42,26 +43,50 @@ cp .env.example .env
 
 ## Arranque
 
+**Desarrollo interactivo (foreground):**
+
 ```bash
 npm run start
+```
+
+**Segundo plano (servidor / SSH / Tailscale):**
+
+```bash
+npm run start:bg          # dev
+npm run start:prod        # build + preview
+npm run status            # ver URLs y logs
+npm run stop              # detener
 ```
 
 - **Frontend**: http://localhost:5173  
 - **Backend**: http://localhost:5174  
 
+Detalle completo en [SCRIPTS.md](SCRIPTS.md).
+
 ## Scripts
 
 | Comando | Descripción |
 |---------|-------------|
-| `npm run start` | Servidor + frontend |
+| `npm run start` | Dev en foreground (terminal activa) |
+| `npm run start:bg` | Dev en segundo plano |
+| `npm run start:prod` | Producción en segundo plano |
+| `npm run stop` | Detener backend y frontend |
+| `npm run status` | Estado, PIDs, URLs Tailscale |
+| `npm run restart` | Reiniciar (dev) |
+| `npm run deploy` | Prod: pull + install + build + start |
+| `npm run deploy:ssh -- user@host [path]` | Despliegue remoto vía SSH |
 | `npm run dev` | Solo Vite |
 | `npm run dev:server` | Solo Express |
 | `npm run build` | Compilar producción |
-| `npm run preview` | Previsualizar build |
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier |
 | `npm run electron:dev` | App de escritorio |
-| `npm run stop` | Detener procesos |
+
+### Deploy remoto (ejemplo)
+
+```bash
+npm run deploy:ssh -- mamell@fedora ~/Documentos/animdb --prod
+```
 
 ## Variables de entorno
 

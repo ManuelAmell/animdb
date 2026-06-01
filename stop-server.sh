@@ -1,2 +1,2 @@
-#!/bin/bash
-pkill -f "vite.*animdb" && echo "AnimDB detenido" || echo "No estaba en ejecución"
+#!/usr/bin/env bash
+exec "$(dirname "$0")/scripts/stop.sh"

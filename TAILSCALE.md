@@ -26,12 +26,26 @@ Ejemplo en tu red: `100.103.50.37` (equipo **fedora**).
 
 ## Iniciar los servidores
 
+**Foreground (desarrollo):**
+
 ```bash
 npm run start
 ```
 
+**Segundo plano (recomendado en servidor / SSH):**
+
+```bash
+./scripts/start.sh --dev
+# o
+npm run start:bg
+```
+
+Al arrancar se muestra la URL local y, si Tailscale está activo, la URL remota `100.x.x.x:5173`.
+
 - **Frontend** (Vite): puerto `5173`
 - **Backend** (Express + SQLite): puerto `5174`
+- **Logs**: `.animdb/logs/`
+- **Parar**: `./scripts/stop.sh` o `npm run stop`
 
 ## Acceder desde otros dispositivos
 
@@ -57,5 +71,6 @@ Ver `.env.example` — `VITE_API_URL` / `VITE_WS_URL` tienen prioridad sobre la 
 ## Documentación relacionada
 
 - [README.md](README.md) — instalación y scripts
+- [SCRIPTS.md](SCRIPTS.md) — deploy SSH y segundo plano
 - [FEATURES.md](FEATURES.md) — uso de la interfaz
 - [API.md](API.md) — endpoints REST y WebSocket

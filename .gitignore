@@ -14,3 +14,4 @@ brain/
 *.tmp
 server/*.db
 server/*.db-*
+.animdb/
