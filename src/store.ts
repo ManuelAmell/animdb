@@ -2,6 +2,7 @@ import type { MediaItem } from './types';
 import { io, type Socket } from 'socket.io-client';
 import { getApiUrl, getWsUrl } from './config';
 import { authHeaders, getAuthToken } from './auth';
+import { sanitizeCoverUrl } from './utils';
 import { cacheItems } from './offline-cache';
 import {
   detectImportFormat,
@@ -188,6 +189,7 @@ class Store {
   async add(item: Omit<MediaItem, 'id' | 'priority'>): Promise<MediaItem> {
     const newItem: MediaItem = {
       ...item,
+      coverUrl: sanitizeCoverUrl(item.coverUrl),
       moods: item.moods ?? [],
       tags: item.tags ?? [],
       id: this.nextId++,
@@ -200,7 +202,9 @@ class Store {
   async update(id: number, data: Partial<MediaItem>): Promise<MediaItem | undefined> {
     const idx = this.items.findIndex((i) => i.id === id);
     if (idx === -1) return undefined;
-    const updated = { ...this.items[idx], ...data };
+    const patch = { ...data };
+    if ('coverUrl' in patch) patch.coverUrl = sanitizeCoverUrl(patch.coverUrl);
+    const updated = { ...this.items[idx], ...patch };
     await this.apiRequest('PUT', `/${id}`, updated);
     return updated;
   }
@@ -215,10 +219,12 @@ class Store {
   }
 
   async bulkUpdate(ids: number[], patch: Partial<MediaItem>): Promise<number> {
+    const safePatch = { ...patch };
+    if ('coverUrl' in safePatch) safePatch.coverUrl = sanitizeCoverUrl(safePatch.coverUrl);
     const res = await fetch(`${getApiUrl()}/items/bulk`, {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify({ ids, patch }),
+      body: JSON.stringify({ ids, patch: safePatch }),
     });
     if (!res.ok) throw new Error('Bulk update failed');
     const data = await res.json();

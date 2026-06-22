@@ -9,7 +9,7 @@ import {
 } from './importers';
 import { smartSearch } from './api';
 import { registerServiceWorker } from './offline-cache';
-import { esc, escAttr } from './utils';
+import { esc, escCoverSrc } from './utils';
 import type { App } from './main-types';
 import type { ContentFilter, KanbanGroup, MediaItem, SavedFilter } from './types';
 import { THEMES } from './types';
@@ -19,7 +19,7 @@ function renderKanbanCard(item: MediaItem): string {
     <div class="kanban-card" draggable="true" data-id="${item.id}"
       ondragstart="app.handleKanbanDragStart(event,${item.id})"
       onclick="app.openDetail(${item.id})">
-      ${item.coverUrl ? `<img src="${escAttr(item.coverUrl)}" alt="${esc(item.title)}">` : '<div class="kanban-no-cover">🎬</div>'}
+      ${escCoverSrc(item.coverUrl) ? `<img src="${escCoverSrc(item.coverUrl)}" alt="${esc(item.title)}">` : '<div class="kanban-no-cover">🎬</div>'}
       <div class="kanban-card-title">${esc(item.title)}</div>
       ${item.rating > 0 ? `<div class="kanban-card-rating">★ ${item.rating}</div>` : ''}
     </div>`;

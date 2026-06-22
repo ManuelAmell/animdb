@@ -1,4 +1,5 @@
 import type { MediaItem } from './types';
+import { sanitizeCoverUrl } from './utils';
 
 export const EXPORT_VERSION = 2;
 
@@ -143,7 +144,7 @@ export function parseTxtImport(text: string): { items: ParsedImportItem[]; error
           .map((m) => m.trim())
           .filter(Boolean),
         isAnime: parseBool(parts[9], true),
-        coverUrl: parts[10] || undefined,
+        coverUrl: sanitizeCoverUrl(parts[10] || undefined),
       });
       continue;
     }
@@ -251,7 +252,7 @@ export function parseCsvImport(text: string): { items: ParsedImportItem[]; error
         .map((m) => m.trim())
         .filter(Boolean),
       isAnime: parseBool(cols[animeIdx >= 0 ? animeIdx : 9], true),
-      coverUrl: cols[coverIdx >= 0 ? coverIdx : 10] || undefined,
+      coverUrl: sanitizeCoverUrl(cols[coverIdx >= 0 ? coverIdx : 10] || undefined),
     });
   }
 
@@ -260,11 +261,13 @@ export function parseCsvImport(text: string): { items: ParsedImportItem[]; error
 
 export function parseJsonImport(text: string): { items: MediaItem[]; nextId?: number; errors: string[] } {
   const errors: string[] = [];
+  const normalize = (items: MediaItem[]) =>
+    items.map((i) => ({ ...i, coverUrl: sanitizeCoverUrl(i.coverUrl) }));
   try {
     const data = JSON.parse(text);
-    if (Array.isArray(data)) return { items: data, errors };
+    if (Array.isArray(data)) return { items: normalize(data), errors };
     if (data.items && Array.isArray(data.items)) {
-      return { items: data.items, nextId: data.nextId, errors };
+      return { items: normalize(data.items), nextId: data.nextId, errors };
     }
     errors.push('JSON sin campo items');
     return { items: [], errors };

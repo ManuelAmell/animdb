@@ -13,7 +13,7 @@ import {
   type ServerNetworkInfo,
 } from './network-config';
 import { getApiUrl, getWsUrl } from './config';
-import { esc, escAttr } from './utils';
+import { esc, escAttr, escCoverSrc, sanitizeCoverUrl } from './utils';
 import { buildExportFile, downloadText, type ExportFormat } from './io';
 import { bindFeatureMethods } from './app-features';
 import './styles/main.css';
@@ -53,6 +53,7 @@ class App {
   private globalSearchLoading = false;
   private globalSearchTimer: ReturnType<typeof setTimeout> | null = null;
   private globalSearchRequestId = 0;
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     bindFeatureMethods(this);
@@ -312,7 +313,7 @@ class App {
     if (!panel) return;
 
     const query = this.getSearchQuery();
-    let items = query
+    const items = query
       ? this.applyContentFilter(store.getAll()).filter((i) => this.matches(i, query))
       : this.applyContentFilter(this.filterByTema(store.getAll()));
     if (items.length === 0 || store.getLoadStatus() === 'loading') {
@@ -477,14 +478,14 @@ class App {
 
       const title = esc(item.title);
       const year = esc(item.year || '');
-      const cover = item.coverUrl ? escAttr(item.coverUrl) : '';
+      const cover = escCoverSrc(item.coverUrl);
 
       return `
         <div class="card${this.bulkMode ? ' bulk-mode' : ''}${this.selectedIds.has(item.id) ? ' selected' : ''}" style="animation-delay:${idx * 0.04}s" onclick="${this.bulkMode ? `app.toggleSelectItem(${item.id}, event)` : `app.openDetail(${item.id})`}" role="listitem">
           ${this.bulkMode ? `<button type="button" class="bulk-check${this.selectedIds.has(item.id) ? ' on' : ''}" data-select-id="${item.id}" onclick="app.toggleSelectItem(${item.id}, event)"></button>` : ''}
           <div style="position:relative; aspect-ratio:2/3; overflow:hidden">
-            ${item.coverUrl 
-              ? `<img src="${cover}" class="card-poster" alt="${title}" loading="lazy">` 
+            ${cover
+              ? `<img src="${cover}" class="card-poster" alt="${title}" loading="lazy">`
               : `<div class="card-poster-placeholder">${typeIcon}</div>
                  <button class="card-search-btn" onclick="event.stopPropagation(); app.quickSearchCover(${item.id})">
                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -576,8 +577,8 @@ class App {
           (item) => `
         <div class="gs-item" tabindex="0" data-action="open" data-id="${item.id}">
           ${
-            item.coverUrl
-              ? `<img src="${escAttr(item.coverUrl)}" class="gs-thumb" alt="">`
+            item.coverUrl && escCoverSrc(item.coverUrl)
+              ? `<img src="${escCoverSrc(item.coverUrl)}" class="gs-thumb" alt="">`
               : `<div class="gs-thumb-placeholder">${item.type === 'movie' ? '🎬' : '📺'}</div>`
           }
           <div class="gs-info">
@@ -686,16 +687,17 @@ class App {
 
     const requestId = ++this.globalSearchRequestId;
     this.globalSearchTimer = setTimeout(async () => {
+      let stale = false;
       try {
         const isAnime = true;
         const results = await smartSearch(query, isAnime);
-        if (requestId !== this.globalSearchRequestId) return;
-        this.globalSearchResults = results;
+        if (requestId !== this.globalSearchRequestId) stale = true;
+        else this.globalSearchResults = results;
       } catch {
-        if (requestId !== this.globalSearchRequestId) return;
-        this.globalSearchResults = [];
-      } finally {
-        if (requestId !== this.globalSearchRequestId) return;
+        if (requestId !== this.globalSearchRequestId) stale = true;
+        else this.globalSearchResults = [];
+      }
+      if (!stale) {
         this.globalSearchLoading = false;
         this.renderGlobalSearchExternal(query);
       }
@@ -999,7 +1001,11 @@ async fetchByAnimeList(): Promise<void> {
     }
     (document.getElementById('fTitle') as HTMLElement).style.borderColor = '';
 
-    const coverUrl = (document.getElementById('fCoverUrl') as HTMLInputElement).value;
+    const rawCoverUrl = (document.getElementById('fCoverUrl') as HTMLInputElement).value;
+    const coverUrl = sanitizeCoverUrl(rawCoverUrl);
+    if (rawCoverUrl.trim() && !coverUrl) {
+      this.showToast('URL de carátula no válida (solo http/https)', '⚠');
+    }
     this.setModalTags((document.getElementById('fTags') as HTMLInputElement)?.value || '');
 
     const existingByTitle = store.getAll().find(i => 
@@ -1114,8 +1120,8 @@ async fetchByAnimeList(): Promise<void> {
 
     const poster = document.getElementById('detailPoster');
     if (poster) {
-      poster.innerHTML = item.coverUrl
-        ? `<img src="${escAttr(item.coverUrl)}" alt="${esc(item.title)}">`
+      poster.innerHTML = escCoverSrc(item.coverUrl)
+        ? `<img src="${escCoverSrc(item.coverUrl)}" alt="${esc(item.title)}">`
         : (item.type === 'movie'
           ? '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2.18"/><line x1="7" y1="2" x2="7" y2="22"/></svg>'
           : '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="15" rx="2"/></svg>');
@@ -1300,8 +1306,8 @@ async fetchByAnimeList(): Promise<void> {
         <div class="rank-item rank-animate" data-id="${item.id}" data-pos="${pos}" draggable="true" ondragstart="app.handleDragStart(event, ${item.id})" ondragover="app.handleDragOver(event)" ondrop="app.handleDrop(event, ${item.id})" onclick="app.openDetail(${item.id})">
           <div class="rank-pos ${posClass}">${pos <= 3 ? ['🥇', '🥈', '🥉'][pos - 1] : '#' + pos}</div>
           <div class="rank-emoji">
-            ${item.coverUrl 
-              ? `<img src="${escAttr(item.coverUrl)}" alt="${esc(item.title)}">` 
+            ${escCoverSrc(item.coverUrl)
+              ? `<img src="${escCoverSrc(item.coverUrl)}" alt="${esc(item.title)}">`
               : '<svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/></svg>'}
           </div>
           <div class="rank-info">
@@ -1459,8 +1465,8 @@ async fetchByAnimeList(): Promise<void> {
             <div class="rank-item" onclick="app.openDetail(${item.id})">
               <div class="rank-pos pn">${idx + 1}</div>
               <div class="rank-emoji">
-                ${item.coverUrl 
-                  ? `<img src="${escAttr(item.coverUrl)}" alt="${esc(item.title)}">` 
+            ${escCoverSrc(item.coverUrl)
+              ? `<img src="${escCoverSrc(item.coverUrl)}" alt="${esc(item.title)}">`
                   : '<svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2"/></svg>'}
               </div>
               <div class="rank-info">
@@ -1811,8 +1817,8 @@ async fetchByAnimeList(): Promise<void> {
     document.getElementById('toastIcon')!.textContent = icon;
     toast.classList.add('show');
 
-    clearTimeout((toast as any)._timer);
-    (toast as any)._timer = setTimeout(() => {
+    clearTimeout(this.toastTimer ?? undefined);
+    this.toastTimer = setTimeout(() => {
       toast.classList.remove('show');
     }, 2800);
   }
